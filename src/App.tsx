@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { Square } from './Square.tsx'
 
 function App() {
-  const [player, setPlayer] = useState('X')
-  const [games, setGames] = useState<string[]>(Array<string>(9).fill(''))
   const [history, setHistory] = useState<Array<string[]>>([
     Array<string>(9).fill(''),
   ])
-  const [cursorHistory, setCursorHistory] = useState(1)
+  const [cursorHistory, setCursorHistory] = useState(0)
 
+  const games = history[cursorHistory]
+  const player = cursorHistory % 2 ? 'X' : 'O'
   const winner = calculateWinner(games)
 
   function handleClick(position: number) {
@@ -19,21 +19,14 @@ function App() {
 
       const nextGames = [...games]
       nextGames[position] = player
-      setPlayer(player === 'X' ? 'O' : 'X')
-      setGames(nextGames)
-      setHistory((prev) => {
-        const nextHistory = [...prev]
-        nextHistory.push(nextGames)
-        return nextHistory
-      })
-      setCursorHistory(history.length + 1)
+      setHistory([...history, nextGames])
+      setCursorHistory(history.length)
     }
   }
 
   function handleUndo() {
-    const prevGames = history[cursorHistory - 2]
+    const prevGames = history[cursorHistory - 1]
     if (prevGames) {
-      setGames(prevGames)
       setCursorHistory(cursorHistory - 1)
     }
   }
@@ -41,7 +34,6 @@ function App() {
   function handleRedo() {
     const nextGames = history[cursorHistory]
     if (nextGames) {
-      setGames(nextGames)
       setCursorHistory(cursorHistory + 1)
     }
   }
@@ -49,8 +41,7 @@ function App() {
   function handleReset() {
     const nextGames = history[0]
     setHistory([nextGames])
-    setGames(nextGames)
-    setCursorHistory(1)
+    setCursorHistory(0)
   }
 
   return (
@@ -78,21 +69,23 @@ function App() {
           <button
             className="rounded-md bg-blue-500 text-white border px-4 py-2"
             onClick={handleReset}
-            disabled={cursorHistory === 1}
+            disabled={cursorHistory === 0}
           >
             Reset
           </button>
           <button
             className="rounded-md bg-blue-500 text-white border px-4 py-2"
             onClick={handleUndo}
-            disabled={cursorHistory === 1}
+            disabled={cursorHistory === 0}
           >
             Undo
           </button>
           <button
             className="rounded-md bg-blue-500 text-white border px-4 py-2"
             onClick={handleRedo}
-            disabled={history.length === 1 || cursorHistory === history.length}
+            disabled={
+              history.length === 1 || cursorHistory === history.length - 1
+            }
           >
             Redo
           </button>
